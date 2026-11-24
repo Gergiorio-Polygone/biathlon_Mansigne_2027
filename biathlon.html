@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<title>Biathlon – Pénalités</title>
+<style>
+:root{--bg:#f4f1ec;--fg:#1c1c1c;--card:#fff;--line:#d8d2c8;--acc:#1d4ed8;--bad:#c62828;--ok:#2e7d32}
+@media(prefers-color-scheme:dark){:root{--bg:#16181c;--fg:#f2f2f2;--card:#23262c;--line:#3a3e46;--acc:#7aa2ff;--bad:#ff6b6b;--ok:#6fcf73}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.3 system-ui,sans-serif}
+header{position:sticky;top:0;background:var(--acc);color:#fff;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:5}
+header select,header button{font:inherit;padding:8px;border-radius:8px;border:0}
+header .m button{background:rgba(255,255,255,.25);color:#fff}
+header .m button.on{background:#fff;color:var(--acc);font-weight:700}
+#st{margin-left:auto;font-size:13px}
+main{padding:10px 10px 90px}
+.seg{display:flex;gap:6px;margin-bottom:10px}
+.seg button{flex:1;padding:12px 0;font:inherit;font-weight:600;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg)}
+.seg button.on{background:var(--fg);color:var(--bg)}
+.hdr,.row{display:grid;grid-template-columns:44px repeat(4,1fr);gap:6px;margin-bottom:6px;align-items:stretch}
+.hdr b{padding:6px 0;text-align:center;border-radius:8px;font-size:14px}
+.tn{display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700}
+.cell{height:76px;font-size:34px;font-weight:700;border-radius:12px;border:4px solid;background:var(--card);color:var(--fg)}
+.cell.bad{background:var(--bad);color:#fff}
+.pr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.pr .dot{width:22px;height:22px;border-radius:50%;flex:none}
+.pr .i{flex:1}.pr .i small{display:block;opacity:.75}
+.pr button{font:inherit;font-weight:700;border-radius:10px;border:0;padding:14px 12px;background:var(--acc);color:#fff;min-width:84px}
+.pr button.u{background:var(--line);color:var(--fg);min-width:48px}
+.pr.done{opacity:.5}.pr.err{border-color:var(--bad);border-width:2px}
+.tag{font-weight:700}.err .tag{color:var(--bad)}
+table{width:100%;border-collapse:collapse;background:var(--card);font-size:15px}
+th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}
+.wrap{overflow-x:auto}.bad{color:var(--bad);font-weight:700}
+.btn{display:block;width:100%;margin-top:12px;padding:14px;font:inherit;font-weight:700;border-radius:10px;border:0;background:var(--acc);color:#fff}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
+nav button{flex:1;padding:16px 0;font:inherit;font-weight:600;border:0;background:none;color:var(--fg)}
+nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:10}
+#sheet.open{display:flex}
+#sheet>div{background:var(--card);width:100%;padding:16px 16px 28px;border-radius:18px 18px 0 0}
+#sheet h3{margin:0 0 12px}
+.num{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.num button{height:72px;font:inherit;font-size:34px;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)}
+.num button.cur{border-color:var(--acc);background:var(--acc);color:#fff}
+.empty{text-align:center;opacity:.7;padding:30px 0}
+</style></head>
+<body>
+<header>
+  <select id="serie" onchange="chSerie(this.value)"></select>
+  <span class="m"><button data-m="ms" onclick="chManche('ms')">Mass Start</button> <button data-m="po" onclick="chManche('po')">Poursuite</button></span>
+  <span id="st" onclick="cfg()">⚙</span>
+</header>
+<main id="main"></main>
+<nav>
+  <button data-t="tir" onclick="chTab('tir')">🎯 Tir</button>
+  <button data-t="pen" onclick="chTab('pen')">🏃 Pénalités</button>
+  <button data-t="rec" onclick="chTab('rec')">📋 Récap</button>
+</nav>
+<div id="sheet" onclick="if(event.target===this)closeSheet()"><div></div></div>
+
+<script>
+// Collez ici l'adresse de votre base Firebase (voir la procédure), ex. : https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app
+const DEFAULT_DB = '';
+
+const C=[['r','Rouge','#e5534b','#fff'],['v','Vert','#43a047','#fff'],['j','Jaune','#f9d71c','#222'],['b','Bleu','#2b9fd9','#fff']];
+const $=s=>document.querySelector(s);
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+          set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let DB=(ls.get('db',DEFAULT_DB)||'').replace(/\/+$/,'');
+let serie=ls.get('serie','1'), manche=ls.get('manche','ms'), tab='tir', poste=ls.get('poste',0), pf=-1;
+let data=ls.get('data_'+serie,{}), pending=ls.get('pend_'+serie,{}), status=DB?'off':'local', cur=null;
+
+const key=(m,t,c,f)=>m+'/'+t+'-'+c+'/'+f;
+const val=(m,t,c,f)=>data[key(m,t,c,f)];
+const pm=()=>serie==='F'?100:50;
+function persist(){ls.set('data_'+serie,data);ls.set('pend_'+serie,pending)}
+
+async function push(k){
+  if(!DB)return;
+  try{const r=await fetch(DB+'/s'+serie+'/'+k+'.json',{method:'PUT',body:JSON.stringify(data[k])});
+      if(!r.ok)throw 0;delete pending[k];status='ok'}catch(e){status='off'}
+  persist();head();
+}
+function set(k,v){data[k]=v;pending[k]=1;persist();push(k);render()}
+async function pull(){
+  if(!DB)return;const s=serie;
+  try{
+    const r=await fetch(DB+'/s'+s+'.json');if(!r.ok)throw 0;
+    const j=(await r.json())||{};if(s!==serie)return;
+    const nd={};
+    for(const m in j)for(const tc in j[m])for(const f in j[m][tc])nd[m+'/'+tc+'/'+f]=j[m][tc][f];
+    for(const k in pending)nd[k]=data[k];
+    data=nd;
+    status='ok';persist();
+    for(const k in pending)push(k);
+  }catch(e){status='off'}
+  head();if(!$('#sheet').classList.contains('open'))render();
+}
+
+function head(){
+  $('#st').textContent=status==='ok'?'🟢 Synchro':status==='off'?'🔴 Hors ligne ⚙':'⚪ Local ⚙';
+  document.querySelectorAll('[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===manche));
+}
+function cfg(){
+  const u=prompt('Adresse de la base Firebase (laisser vide = mode local, sans synchronisation) :',DB);
+  if(u===null)return;
+  DB=u.trim().replace(/\/+$/,'');ls.set('db',DB);status=DB?'off':'local';head();pull();
+}
+function chSerie(v){serie=v;ls.set('serie',v);data=ls.get('data_'+v,{});pending=ls.get('pend_'+v,{});render();pull()}
+function chManche(m){manche=m;ls.set('manche',m);head();render()}
+function chTab(t){tab=t;render()}
+function setPoste(p){poste=p;ls.set('poste',p);render()}
+function setPf(p){pf=p;render()}
+
+function pick(t,c){
+  cur={t,c};const v=val(manche,t,c,'m'),col=C.find(x=>x[0]===c);
+  let h='<h3>Équipe '+t+' · '+col[1]+' — cibles manquées</h3><div class="num">';
+  for(let i=0;i<=5;i++)h+='<button class="'+(v===i?'cur':'')+'" onclick="choose('+i+')">'+i+'</button>';
+  h+='<button style="font-size:18px" onclick="choose(null)">Effacer</button></div>';
+  $('#sheet>div').innerHTML=h;$('#sheet').classList.add('open');
+}
+function closeSheet(){$('#sheet').classList.remove('open');cur=null}
+function choose(v){const k=key(manche,cur.t,cur.c,'m');closeSheet();set(k,v)}
+
+function tir(){
+  let h='<div class="seg">'+[0,1,2,3].map(p=>'<button class="'+(p===poste?'on':'')+'" onclick="setPoste('+p+')">'+(p*5+1)+'–'+(p*5+5)+'</button>').join('')+'</div>';
+  h+='<div class="hdr"><span></span>'+C.map(c=>'<b style="background:'+c[2]+';color:'+c[3]+'">'+c[1]+'</b>').join('')+'</div>';
+  for(let t=poste*5+1;t<=poste*5+5;t++){
+    h+='<div class="row"><span class="tn">'+t+'</span>'+C.map(c=>{
+      const m=val(manche,t,c[0],'m');
+      return '<button class="cell '+(m>0?'bad':'')+'" style="border-color:'+c[2]+'" onclick="pick('+t+',\''+c[0]+'\')">'+(m==null?'·':m)+'</button>';
+    }).join('')+'</div>';
+  }
+  return h+'<p class="empty">Touchez une case pour saisir le nombre de cibles manquées (0 à 5).</p>';
+}
+
+function pen(){
+  let h='<div class="seg"><button class="'+(pf===-1?'on':'')+'" onclick="setPf(-1)">Tous</button>'+
+    [0,1,2,3].map(p=>'<button class="'+(p===pf?'on':'')+'" onclick="setPf('+p+')">'+(p*5+1)+'–'+(p*5+5)+'</button>').join('')+'</div>';
+  const L=[];
+  for(let t=1;t<=20;t++){
+    if(pf>=0&&Math.floor((t-1)/5)!==pf)continue;
+    C.forEach(c=>{const m=val(manche,t,c[0],'m')||0,p=val(manche,t,c[0],'p')||0;if(m>0||p>0)L.push({t,c,m,p,r:m-p})});
+  }
+  L.sort((a,b)=>((a.r===0)-(b.r===0))||a.t-b.t);
+  if(!L.length)return h+'<p class="empty">Aucun tour de pénalité à effectuer.</p>';
+  return h+L.map(x=>{
+    const cls=x.r<0?'err':x.r===0?'done':'';
+    const txt=x.r>0?x.r+' tour'+(x.r>1?'s':'')+' à faire':x.r===0?'✓ terminé':'⚠ '+(-x.r)+' tour(s) en trop';
+    return '<div class="pr '+cls+'"><span class="dot" style="background:'+x.c[2]+'"></span>'+
+      '<div class="i"><b>Équipe '+x.t+' · '+x.c[1]+'</b><small>'+x.p+' / '+x.m+' faits · <span class="tag">'+txt+'</span></small></div>'+
+      '<button class="u" onclick="adj('+x.t+',\''+x.c[0]+'\',-1)">−1</button>'+
+      '<button onclick="adj('+x.t+',\''+x.c[0]+'\',1)">+1 tour</button></div>';
+  }).join('');
+}
+function adj(t,c,d){const k=key(manche,t,c,'p');set(k,Math.max(0,(data[k]||0)+d))}
+
+function stats(m,t){
+  let miss=0,done=0,err=false;
+  C.forEach(c=>{const a=val(m,t,c[0],'m')||0,b=val(m,t,c[0],'p')||0;miss+=a;done+=b;if(a!==b)err=true});
+  return{miss,done,err};
+}
+function rec(){
+  let h='<div class="wrap"><table><tr><th rowspan=2>Éq.</th><th colspan=3>Mass Start</th><th colspan=3>Poursuite</th><th rowspan=2>Total m</th></tr>'+
+    '<tr><th>Manq.</th><th>Tours</th><th>m</th><th>Manq.</th><th>Tours</th><th>m</th></tr>';
+  for(let t=1;t<=20;t++){
+    const a=stats('ms',t),b=stats('po',t);
+    h+='<tr><td><b>'+t+'</b></td><td>'+a.miss+'</td><td class="'+(a.err?'bad':'')+'">'+a.done+'</td><td>'+a.miss*pm()+'</td>'+
+       '<td>'+b.miss+'</td><td class="'+(b.err?'bad':'')+'">'+b.done+'</td><td>'+b.miss*pm()+'</td><td><b>'+(a.miss+b.miss)*pm()+'</b></td></tr>';
+  }
+  return h+'</table></div><p style="opacity:.75;font-size:14px">Pénalité : '+pm()+' m par cible manquée ('+(serie==='F'?'finale':'série normale')+'). En rouge : tours effectués ≠ cibles manquées.</p>'+
+    '<button class="btn" onclick="csv()">Exporter en CSV</button>';
+}
+function csv(){
+  let s='Serie;Equipe;Couleur;Manche;Manquees;Tours_faits;Penalite_m\n';
+  ['ms','po'].forEach(m=>{for(let t=1;t<=20;t++)C.forEach(c=>{
+    const a=val(m,t,c[0],'m')||0,b=val(m,t,c[0],'p')||0;
+    s+=[serie,t,c[1],m==='ms'?'Mass Start':'Poursuite',a,b,a*pm()].join(';')+'\n';
+  })});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+s],{type:'text/csv'}));
+  a.download='biathlon_serie_'+serie+'.csv';document.body.appendChild(a);a.click();a.remove();
+}
+
+function render(){
+  $('#main').innerHTML=tab==='tir'?tir():tab==='pen'?pen():rec();
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+}
+
+$('#serie').innerHTML=['1','2','3','4','5','6','7'].map(s=>'<option value="'+s+'">Série '+s+'</option>').join('')+'<option value="F">Finale</option>';
+$('#serie').value=serie;
+head();render();pull();setInterval(pull,4000);
+</script>
+</body></html>

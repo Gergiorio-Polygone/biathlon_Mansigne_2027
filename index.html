@@ -12,21 +12,21 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.3 system-ui,sans-serif}
-header{position:sticky;top:0;background:var(--acc);color:#fff;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:5}
-header select,header button{font:inherit;font-size:15px;padding:7px 10px;border-radius:8px;border:0}
+header{background:var(--acc);color:#fff;padding:6px 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;z-index:5}
+header select,header button{font:inherit;font-size:clamp(12px,3.6vw,15px);padding:6px 8px;border-radius:8px;border:0}
 header .m{display:flex;gap:6px}
 #fs{background:rgba(255,255,255,.25);color:#fff}
 header .m button{background:rgba(255,255,255,.25);color:#fff}
 header .m button.on{background:#fff;color:var(--acc);font-weight:700}
 #st{margin-left:auto;font-size:13px}
-main{padding:10px 10px 90px}
+main{padding:8px 6px 100px}
 .seg{display:flex;gap:6px;margin-bottom:10px}
-.seg button{flex:1;min-width:0;padding:12px 0;font:inherit;font-size:15px;white-space:nowrap;font-weight:600;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg)}
+.seg button{flex:1;min-width:0;padding:10px 0;font:inherit;font-size:clamp(11px,3.4vw,15px);white-space:nowrap;font-weight:600;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg)}
 .seg button.on{background:var(--fg);color:var(--bg)}
-.hdr,.row{display:grid;grid-template-columns:34px repeat(4,minmax(0,1fr));gap:6px;margin-bottom:6px;align-items:stretch}
-.hdr b{padding:6px 0;text-align:center;border-radius:8px;font-size:13px;overflow:hidden;min-width:0}
-.tn{display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700}
-.cell{height:76px;min-width:0;padding:0;font-size:32px;font-weight:700;border-radius:12px;border:4px solid;background:var(--card);color:var(--fg)}
+.hdr,.row{display:grid;grid-template-columns:clamp(22px,7vw,34px) repeat(4,minmax(0,1fr));gap:4px;margin-bottom:6px;align-items:stretch}
+.hdr b{padding:5px 0;text-align:center;border-radius:8px;font-size:clamp(9px,3vw,13px);overflow:hidden;min-width:0}
+.tn{display:flex;align-items:center;justify-content:center;font-size:clamp(14px,5vw,20px);font-weight:700}
+.cell{height:clamp(44px,14vw,76px);min-width:0;padding:0;font-size:clamp(20px,8vw,32px);font-weight:700;border-radius:12px;border:4px solid;background:var(--card);color:var(--fg)}
 .cell.bad{background:var(--bad);color:#fff}
 .pr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
 .pr .dot{width:22px;height:22px;border-radius:50%;flex:none}
@@ -40,7 +40,7 @@ th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}
 .wrap{overflow-x:auto}.bad{color:var(--bad);font-weight:700}
 .btn{display:block;width:100%;margin-top:12px;padding:14px;font:inherit;font-weight:700;border-radius:10px;border:0;background:var(--acc);color:#fff}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
-nav button{flex:1;min-width:0;padding:14px 2px;font:inherit;font-size:14px;white-space:nowrap;font-weight:600;border:0;background:none;color:var(--fg)}
+nav button{flex:1;min-width:0;padding:8px 2px;line-height:1.25;font:inherit;font-size:clamp(10px,3.2vw,14px);white-space:nowrap;font-weight:600;border:0;background:none;color:var(--fg)}
 nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:10}
 #sheet.open{display:flex}
@@ -50,15 +50,15 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 .num button{height:72px;font:inherit;font-size:34px;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)}
 .num button.cur{border-color:var(--acc);background:var(--acc);color:#fff}
 .miss{background:var(--bad);color:#fff;font-weight:700}.extra{background:#f0a020;color:#000;font-weight:700}.ok{color:var(--ok);font-weight:700}
-.msg{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--ok);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-weight:700;min-height:56px}
+.msg{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--ok);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-weight:700;min-height:56px;font-size:clamp(12px,3.4vw,15px)}
 .msg.w{border-color:#e08a00}.msg span{flex:1}.msg button{font:inherit;font-weight:700;padding:12px 14px;border-radius:10px;border:0;background:var(--line);color:var(--fg)}.msg button:disabled{opacity:.35}
 .pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.pad button{height:58px;min-width:0;padding:0;font:inherit;font-size:26px;font-weight:700;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg);position:relative}
+.pad button{height:clamp(44px,12vw,58px);min-width:0;padding:0;font:inherit;font-size:clamp(16px,6vw,26px);font-weight:700;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg);position:relative}
 .pad button.todo{border-color:var(--bad)}.pad button.sel{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .pad i{position:absolute;top:1px;right:5px;font-size:12px;font-style:normal;font-weight:700;color:var(--bad)}
 .pad button.sel i{color:var(--bg)}
 .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
-.cols button{height:96px;min-width:0;padding:0;overflow:hidden;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:17px}.cols button:disabled{opacity:.3}
+.cols button{height:clamp(64px,22vw,96px);min-width:0;padding:0;overflow:hidden;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:clamp(10px,3.2vw,17px)}.cols button:disabled{opacity:.3}
 .empty{text-align:center;opacity:.7;padding:30px 0}
 </style></head>
 <body>
@@ -69,9 +69,9 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 </header>
 <main id="main"></main>
 <nav>
-  <button data-t="tir" onclick="chTab('tir')">🎯 Tir</button>
-  <button data-t="pen" onclick="chTab('pen')">🏃 Pénalités</button>
-  <button data-t="rec" onclick="chTab('rec')">📋 Récap</button>
+  <button data-t="tir" onclick="chTab('tir')">🎯<br>Tir</button>
+  <button data-t="pen" onclick="chTab('pen')">🏃<br>Pénalités</button>
+  <button data-t="rec" onclick="chTab('rec')">📋<br>Récap</button>
 </nav>
 <div id="sheet" onclick="if(event.target===this)closeSheet()"><div></div></div>
 
@@ -174,7 +174,7 @@ function pen(){
   }
   h+='</div><div class="cols">'+C.map(c=>{
     const x=selT?(val(manche,selT,c[0],'m')||0):0,y=selT?(val(manche,selT,c[0],'p')||0):0;
-    return '<button '+(selT?'':'disabled ')+'style="background:'+c[2]+';color:'+c[3]+'" onclick="tap(\''+c[0]+'\')">'+c[1]+(selT?'<br><span style="font-size:22px">'+y+' / '+x+'</span>':'')+'</button>';
+    return '<button '+(selT?'':'disabled ')+'style="background:'+c[2]+';color:'+c[3]+'" onclick="tap(\''+c[0]+'\')">'+c[1]+(selT?'<br><span style="font-size:clamp(14px,5vw,22px)">'+y+' / '+x+'</span>':'')+'</button>';
   }).join('')+'</div>';
   const L=[];
   for(let t=1;t<=20;t++)C.forEach(c=>{const m=val(manche,t,c[0],'m')||0,p=val(manche,t,c[0],'p')||0;if(m>0||p>0)L.push({t,c,m,p,r:m-p})});

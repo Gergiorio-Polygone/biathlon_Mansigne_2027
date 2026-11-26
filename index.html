@@ -43,6 +43,16 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 .num{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .num button{height:72px;font:inherit;font-size:34px;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)}
 .num button.cur{border-color:var(--acc);background:var(--acc);color:#fff}
+.miss{background:var(--bad);color:#fff;font-weight:700}.extra{background:#f0a020;color:#000;font-weight:700}.ok{color:var(--ok);font-weight:700}
+.msg{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--ok);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-weight:700;min-height:56px}
+.msg.w{border-color:#e08a00}.msg span{flex:1}.msg button{font:inherit;font-weight:700;padding:12px 14px;border-radius:10px;border:0;background:var(--line);color:var(--fg)}.msg button:disabled{opacity:.35}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pad button{height:58px;font:inherit;font-size:26px;font-weight:700;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg);position:relative}
+.pad button.todo{border-color:var(--bad)}.pad button.sel{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.pad i{position:absolute;top:1px;right:5px;font-size:12px;font-style:normal;font-weight:700;color:var(--bad)}
+.pad button.sel i{color:var(--bg)}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.cols button{height:96px;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:17px}.cols button:disabled{opacity:.3}
 .empty{text-align:center;opacity:.7;padding:30px 0}
 </style></head>
 <body>
@@ -71,9 +81,9 @@ let DB=(ls.get('db',DEFAULT_DB)||'').replace(/\/+$/,'');
 let serie=ls.get('serie','1'), manche=ls.get('manche','ms'), tab='tir', poste=ls.get('poste',0), pf=-1;
 let data=ls.get('data_'+serie,{}), pending=ls.get('pend_'+serie,{}), status=DB?'off':'local', cur=null;
 
+const MN={ms:'Mass Start',po:'Poursuite'};
 const key=(m,t,c,f)=>m+'/'+t+'-'+c+'/'+f;
 const val=(m,t,c,f)=>data[key(m,t,c,f)];
-const pm=()=>serie==='F'?100:50;
 function persist(){ls.set('data_'+serie,data);ls.set('pend_'+serie,pending)}
 
 async function push(k){
@@ -107,8 +117,8 @@ function cfg(){
   if(u===null)return;
   DB=u.trim().replace(/\/+$/,'');ls.set('db',DB);status=DB?'off':'local';head();pull();
 }
-function chSerie(v){serie=v;ls.set('serie',v);data=ls.get('data_'+v,{});pending=ls.get('pend_'+v,{});render();pull()}
-function chManche(m){manche=m;ls.set('manche',m);head();render()}
+function chSerie(v){serie=v;hist=[];msg='';selT=null;ls.set('serie',v);data=ls.get('data_'+v,{});pending=ls.get('pend_'+v,{});render();pull()}
+function chManche(m){manche=m;selT=null;ls.set('manche',m);head();render()}
 function chTab(t){tab=t;render()}
 function setPoste(p){poste=p;ls.set('poste',p);render()}
 function setPf(p){pf=p;render()}
@@ -135,48 +145,84 @@ function tir(){
   return h+'<p class="empty">Touchez une case pour saisir le nombre de cibles manquées (0 à 5).</p>';
 }
 
+let selT=null,msg='',hist=[];
+function selTeam(t){selT=selT===t?null:t;render()}
+function tap(cc){
+  if(!selT)return;
+  const t=selT,k=key(manche,t,cc,'p'),prev=data[k]||0,x=val(manche,t,cc,'m')||0,col=C.find(z=>z[0]===cc)[1];
+  selT=null;hist.push({k,prev});
+  msg=(prev+1>x?'⚠ ':'✓ ')+'Éq. '+t+' · '+col+' : '+(prev+1)+' / '+x+(prev+1>x?' (tour en trop)':'');
+  try{navigator.vibrate(40)}catch(e){}
+  set(k,prev+1);
+}
+function undo(){const h=hist.pop();if(!h)return;msg='↩ Dernière saisie annulée';set(h.k,h.prev)}
 function pen(){
-  let h='<div class="seg"><button class="'+(pf===-1?'on':'')+'" onclick="setPf(-1)">Tous</button>'+
-    [0,1,2,3].map(p=>'<button class="'+(p===pf?'on':'')+'" onclick="setPf('+p+')">'+(p*5+1)+'–'+(p*5+5)+'</button>').join('')+'</div>';
-  const L=[];
+  let h='<div class="msg'+(msg.indexOf('⚠')===0?' w':'')+'"><span>'+(msg||'Touchez un numéro d\'équipe, puis la couleur')+'</span>'+
+    '<button onclick="undo()"'+(hist.length?'':' disabled')+'>Annuler</button></div>';
+  h+='<div class="pad">';
   for(let t=1;t<=20;t++){
-    if(pf>=0&&Math.floor((t-1)/5)!==pf)continue;
-    C.forEach(c=>{const m=val(manche,t,c[0],'m')||0,p=val(manche,t,c[0],'p')||0;if(m>0||p>0)L.push({t,c,m,p,r:m-p})});
+    let todo=0;C.forEach(c=>{todo+=Math.max(0,(val(manche,t,c[0],'m')||0)-(val(manche,t,c[0],'p')||0))});
+    h+='<button class="'+(t===selT?'sel ':'')+(todo?'todo':'')+'" onclick="selTeam('+t+')">'+t+(todo?'<i>'+todo+'</i>':'')+'</button>';
   }
+  h+='</div><div class="cols">'+C.map(c=>{
+    const x=selT?(val(manche,selT,c[0],'m')||0):0,y=selT?(val(manche,selT,c[0],'p')||0):0;
+    return '<button '+(selT?'':'disabled ')+'style="background:'+c[2]+';color:'+c[3]+'" onclick="tap(\''+c[0]+'\')">'+c[1]+(selT?'<br><span style="font-size:22px">'+y+' / '+x+'</span>':'')+'</button>';
+  }).join('')+'</div>';
+  const L=[];
+  for(let t=1;t<=20;t++)C.forEach(c=>{const m=val(manche,t,c[0],'m')||0,p=val(manche,t,c[0],'p')||0;if(m>0||p>0)L.push({t,c,m,p,r:m-p})});
   L.sort((a,b)=>((a.r===0)-(b.r===0))||a.t-b.t);
+  h+='<h3 style="margin:14px 0 6px">Suivi ('+MN[manche]+')</h3>';
   if(!L.length)return h+'<p class="empty">Aucun tour de pénalité à effectuer.</p>';
   return h+L.map(x=>{
     const cls=x.r<0?'err':x.r===0?'done':'';
     const txt=x.r>0?x.r+' tour'+(x.r>1?'s':'')+' à faire':x.r===0?'✓ terminé':'⚠ '+(-x.r)+' tour(s) en trop';
     return '<div class="pr '+cls+'"><span class="dot" style="background:'+x.c[2]+'"></span>'+
       '<div class="i"><b>Équipe '+x.t+' · '+x.c[1]+'</b><small>'+x.p+' / '+x.m+' faits · <span class="tag">'+txt+'</span></small></div>'+
-      '<button class="u" onclick="adj('+x.t+',\''+x.c[0]+'\',-1)">−1</button>'+
-      '<button onclick="adj('+x.t+',\''+x.c[0]+'\',1)">+1 tour</button></div>';
+      '<button class="u" onclick="adj('+x.t+',\''+x.c[0]+'\',-1)">−1</button></div>';
   }).join('');
 }
 function adj(t,c,d){const k=key(manche,t,c,'p');set(k,Math.max(0,(data[k]||0)+d))}
 
-function stats(m,t){
-  let miss=0,done=0,err=false;
-  C.forEach(c=>{const a=val(m,t,c[0],'m')||0,b=val(m,t,c[0],'p')||0;miss+=a;done+=b;if(a!==b)err=true});
-  return{miss,done,err};
+function ecarts(){
+  const L=[];
+  ['ms','po'].forEach(m=>{for(let t=1;t<=20;t++)C.forEach(c=>{
+    const x=val(m,t,c[0],'m')||0,y=val(m,t,c[0],'p')||0;
+    if(x!==y)L.push({m,t,c,x,y,d:x-y});
+  })});
+  return L;
+}
+const plur=(n,w)=>n+' '+w+(n>1?'s':'');
+function grid(m){
+  let h='<h3 style="margin:16px 0 6px">'+MN[m]+'</h3><div class="wrap"><table><tr><th>Éq.</th>'+
+    C.map(c=>'<th style="background:'+c[2]+';color:'+c[3]+'">'+c[1]+'</th>').join('')+'</tr>';
+  for(let t=1;t<=20;t++){
+    h+='<tr><td><b>'+t+'</b></td>'+C.map(c=>{
+      const x=val(m,t,c[0],'m')||0,y=val(m,t,c[0],'p')||0;
+      const cl=x===0&&y===0?'':x===y?'ok':y<x?'miss':'extra';
+      return '<td class="'+cl+'">'+(x===0&&y===0?'·':y+' / '+x)+'</td>';
+    }).join('')+'</tr>';
+  }
+  return h+'</table></div>';
 }
 function rec(){
-  let h='<div class="wrap"><table><tr><th rowspan=2>Éq.</th><th colspan=3>Mass Start</th><th colspan=3>Poursuite</th><th rowspan=2>Total m</th></tr>'+
-    '<tr><th>Manq.</th><th>Tours</th><th>m</th><th>Manq.</th><th>Tours</th><th>m</th></tr>';
-  for(let t=1;t<=20;t++){
-    const a=stats('ms',t),b=stats('po',t);
-    h+='<tr><td><b>'+t+'</b></td><td>'+a.miss+'</td><td class="'+(a.err?'bad':'')+'">'+a.done+'</td><td>'+a.miss*pm()+'</td>'+
-       '<td>'+b.miss+'</td><td class="'+(b.err?'bad':'')+'">'+b.done+'</td><td>'+b.miss*pm()+'</td><td><b>'+(a.miss+b.miss)*pm()+'</b></td></tr>';
+  const L=ecarts(),nm=L.filter(e=>e.d>0).length,ne=L.length-nm;
+  let h='<p style="margin:0 0 8px"><b>Série '+(serie==='F'?'Finale':serie)+'</b> · '+
+    (L.length?'<span class="bad">'+plur(nm,'concurrent')+' avec tour(s) non effectué(s)</span>'+(ne?' · '+plur(ne,'avec tour')+' en trop':''):'<span style="color:var(--ok);font-weight:700">Aucun écart</span>')+'</p>';
+  if(L.length){
+    h+=L.map(e=>'<div class="pr '+(e.d>0?'err':'')+'"><span class="dot" style="background:'+e.c[2]+'"></span><div class="i"><b>Éq. '+e.t+' · '+e.c[1]+' · '+MN[e.m]+'</b>'+
+      '<small>'+plur(e.x,'tir')+' manqué'+(e.x>1?'s':'')+' → '+e.x+' tour'+(e.x>1?'s':'')+' dû'+(e.x>1?'s':'')+', '+e.y+' fait'+(e.y>1?'s':'')+'</small></div>'+
+      '<span class="tag" style="color:'+(e.d>0?'var(--bad)':'#e08a00')+';text-align:right">'+(e.d>0?plur(e.d,'tour')+'<br>non effectué'+(e.d>1?'s':''):plur(-e.d,'tour')+'<br>en trop')+'</span></div>').join('');
   }
-  return h+'</table></div><p style="opacity:.75;font-size:14px">Pénalité : '+pm()+' m par cible manquée ('+(serie==='F'?'finale':'série normale')+'). En rouge : tours effectués ≠ cibles manquées.</p>'+
-    '<button class="btn" onclick="csv()">Exporter en CSV</button>';
+  h+=grid('ms')+grid('po');
+  h+='<p style="opacity:.75;font-size:14px">Cases : tours faits / tirs manqués. <span class="bad">Rouge</span> = tours non effectués, orange = tours en trop, vert = conforme. À consulter une fois la manche terminée ; en cas de doute, le comité statue.</p>'+
+     '<button class="btn" onclick="csv()">Exporter en CSV</button>';
+  return h;
 }
 function csv(){
-  let s='Serie;Equipe;Couleur;Manche;Manquees;Tours_faits;Penalite_m\n';
+  let s='Serie;Manche;Equipe;Couleur;Tirs_manques;Tours_dus;Tours_faits;Ecart(non_effectues)\n';
   ['ms','po'].forEach(m=>{for(let t=1;t<=20;t++)C.forEach(c=>{
-    const a=val(m,t,c[0],'m')||0,b=val(m,t,c[0],'p')||0;
-    s+=[serie,t,c[1],m==='ms'?'Mass Start':'Poursuite',a,b,a*pm()].join(';')+'\n';
+    const x=val(m,t,c[0],'m')||0,y=val(m,t,c[0],'p')||0;
+    s+=[serie,MN[m],t,c[1],x,x,y,x-y].join(';')+'\n';
   })});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+s],{type:'text/csv'}));
   a.download='biathlon_serie_'+serie+'.csv';document.body.appendChild(a);a.click();a.remove();

@@ -2,6 +2,9 @@
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Biathlon – Pénalités</title>
 <style>
 :root{--bg:#f4f1ec;--fg:#1c1c1c;--card:#fff;--line:#d8d2c8;--acc:#1d4ed8;--bad:#c62828;--ok:#2e7d32}
@@ -71,7 +74,7 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 
 <script>
 // Collez ici l'adresse de votre base Firebase (voir la procédure), ex. : https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app
-const DEFAULT_DB = '';
+const DEFAULT_DB = 'https://biathlon-mansigne-default-rtdb.europe-west1.firebasedatabase.app';
 
 const C=[['r','Rouge','#e5534b','#fff'],['v','Vert','#43a047','#fff'],['j','Jaune','#f9d71c','#222'],['b','Bleu','#2b9fd9','#fff']];
 const $=s=>document.querySelector(s);
@@ -236,5 +239,6 @@ function render(){
 $('#serie').innerHTML=['1','2','3','4','5','6','7'].map(s=>'<option value="'+s+'">Série '+s+'</option>').join('')+'<option value="F">Finale</option>';
 $('#serie').value=serie;
 head();render();pull();setInterval(pull,4000);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body></html>

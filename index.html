@@ -223,7 +223,9 @@ function rec(){
   }
   h+=grid('ms')+grid('po');
   h+='<p style="opacity:.75;font-size:14px">Cases : tours faits / tirs manqués. <span class="bad">Rouge</span> = tours non effectués, orange = tours en trop, vert = conforme. À consulter une fois la manche terminée ; en cas de doute, le comité statue.</p>'+
-     '<button class="btn" onclick="csv()">Exporter en CSV</button>';
+     '<button class="btn" onclick="csv()">Exporter en CSV</button>'+
+     '<button class="btn" style="background:var(--bad)" onclick="wipe(false)">Remise à zéro de la série</button>'+
+     '<button class="btn" style="background:#6b1f1f" onclick="wipe(true)">Tout remettre à zéro (toutes les séries)</button>';
   return h;
 }
 function csv(){
@@ -236,6 +238,18 @@ function csv(){
   a.download='biathlon_serie_'+serie+'.csv';document.body.appendChild(a);a.click();a.remove();
 }
 
+async function wipe(all){
+  const lab=serie==='F'?'Finale':'série '+serie;
+  if(!confirm(all?'Remettre à zéro TOUTES les séries (et la finale) ? Les tirs et tours enregistrés seront supprimés sur tous les appareils.':'Remettre à zéro la '+lab+' ? Les tirs et tours enregistrés seront supprimés sur tous les appareils.'))return;
+  if(((prompt('Pour confirmer, tapez ZERO')||'').trim().toUpperCase())!=='ZERO')return;
+  if(DB){
+    try{const r=await fetch(DB+(all?'/.json':'/s'+serie+'.json'),{method:'DELETE'});if(!r.ok)throw 0}
+    catch(e){alert('Réseau indisponible : rien n\'a été effacé. Réessayez avec du réseau.');return}
+  }
+  try{Object.keys(localStorage).forEach(x=>{if(x.indexOf('pend_')===0||x.indexOf('data_')===0){if(all||x.slice(5)===serie)localStorage.removeItem(x)}})}catch(e){}
+  data={};pending={};hist=[];msg='';selT=null;persist();render();
+  alert('Remise à zéro effectuée.');
+}
 function render(){
   $('#main').innerHTML=tab==='tir'?tir():tab==='pen'?pen():rec();
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));

@@ -46,10 +46,11 @@ nav button{flex:1;min-width:0;padding:8px 2px;line-height:1.25;font:inherit;font
 nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;z-index:10}
 #sheet.open{display:flex}
-#sheet>div{background:var(--card);width:100%;padding:16px 16px 28px;border-radius:18px 18px 0 0}
-#sheet h3{margin:0 0 12px}
-.num{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.num button{height:72px;font:inherit;font-size:34px;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)}
+#sheet>div{max-height:92vh;overflow:auto;background:var(--card);width:100%;padding:16px 16px 28px;border-radius:18px 18px 0 0}
+#sheet h3{margin:0 0 12px;font-size:clamp(15px,4.6vw,20px)}
+.num{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.num button{height:clamp(60px,17vw,76px);min-width:0;padding:0;font:inherit;font-size:clamp(26px,9vw,36px);font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)}
+.num button.sm{height:clamp(48px,13vw,60px);font-size:clamp(14px,4.2vw,18px)}
 .num button.cur{border-color:var(--acc);background:var(--acc);color:#fff}
 .msg{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--ok);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-weight:700;min-height:56px;font-size:clamp(12px,3.4vw,15px)}
 .msg.w{border-color:#e08a00}.msg span{flex:1}.msg button{font:inherit;font-weight:700;padding:12px 14px;border-radius:10px;border:0;background:var(--line);color:var(--fg)}.msg button:disabled{opacity:.35}
@@ -179,7 +180,7 @@ function pick(t,c){
   cur={t,c};const v=val(manche,t,c,'m'),col=C.find(x=>x[0]===c);
   let h='<h3>Équipe '+t+' · '+col[1]+' — cibles manquées</h3><div class="num">';
   for(let i=0;i<=5;i++)h+='<button class="'+(v===i?'cur':'')+'" onclick="choose('+i+')">'+i+'</button>';
-  h+='<button style="font-size:18px" onclick="choose(null)">Effacer</button></div>';
+  h+='<button class="sm" style="grid-column:span 2" onclick="choose(null)">Effacer</button><button class="sm" onclick="closeSheet()">Fermer</button></div>';
   $('#sheet>div').innerHTML=h;$('#sheet').classList.add('open');
 }
 function closeSheet(){$('#sheet').classList.remove('open');cur=null}

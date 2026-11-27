@@ -12,16 +12,17 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.3 system-ui,sans-serif}
-header{background:var(--acc);color:#fff;padding:6px 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;z-index:5}
+header{background:var(--acc);color:#fff;padding:6px 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 header select,header button{font:inherit;font-size:clamp(12px,3.6vw,15px);padding:6px 8px;border-radius:8px;border:0}
 header .m{display:flex;gap:6px}
-#fs{background:rgba(255,255,255,.25);color:#fff}
-header .m button{background:rgba(255,255,255,.25);color:#fff}
+header .m button,#fs,#me{background:rgba(255,255,255,.25);color:#fff}
 header .m button.on{background:#fff;color:var(--acc);font-weight:700}
 #st{margin-left:auto;font-size:13px}
 main{padding:8px 6px 100px}
-.seg{display:flex;gap:6px;margin-bottom:10px}
-.seg button{flex:1;min-width:0;padding:10px 0;font:inherit;font-size:clamp(11px,3.4vw,15px);white-space:nowrap;font-weight:600;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg)}
+h3{margin:12px 0 6px}
+.note{opacity:.8;font-size:14px;margin:4px 0 8px}
+.seg{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.seg button{flex:1 0 18%;min-width:0;padding:10px 0;font:inherit;font-size:clamp(11px,3.4vw,15px);white-space:nowrap;font-weight:600;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg)}
 .seg button.on{background:var(--fg);color:var(--bg)}
 .hdr,.row{display:grid;grid-template-columns:clamp(22px,7vw,34px) repeat(4,minmax(0,1fr));gap:4px;margin-bottom:6px;align-items:stretch}
 .hdr b{padding:5px 0;text-align:center;border-radius:8px;font-size:clamp(9px,3vw,13px);overflow:hidden;min-width:0}
@@ -38,6 +39,7 @@ main{padding:8px 6px 100px}
 table{width:100%;border-collapse:collapse;background:var(--card);font-size:15px}
 th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}
 .wrap{overflow-x:auto}.bad{color:var(--bad);font-weight:700}
+.miss{background:var(--bad);color:#fff;font-weight:700}.extra{background:#f0a020;color:#000;font-weight:700}.ok{color:var(--ok);font-weight:700}
 .btn{display:block;width:100%;margin-top:12px;padding:14px;font:inherit;font-weight:700;border-radius:10px;border:0;background:var(--acc);color:#fff}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
 nav button{flex:1;min-width:0;padding:8px 2px;line-height:1.25;font:inherit;font-size:clamp(10px,3.2vw,14px);white-space:nowrap;font-weight:600;border:0;background:none;color:var(--fg)}
@@ -49,10 +51,9 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 .num{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .num button{height:72px;font:inherit;font-size:34px;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)}
 .num button.cur{border-color:var(--acc);background:var(--acc);color:#fff}
-.miss{background:var(--bad);color:#fff;font-weight:700}.extra{background:#f0a020;color:#000;font-weight:700}.ok{color:var(--ok);font-weight:700}
 .msg{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--ok);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-weight:700;min-height:56px;font-size:clamp(12px,3.4vw,15px)}
 .msg.w{border-color:#e08a00}.msg span{flex:1}.msg button{font:inherit;font-weight:700;padding:12px 14px;border-radius:10px;border:0;background:var(--line);color:var(--fg)}.msg button:disabled{opacity:.35}
-.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .pad button{height:clamp(44px,12vw,58px);min-width:0;padding:0;font:inherit;font-size:clamp(16px,6vw,26px);font-weight:700;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg);position:relative}
 .pad button.todo{border-color:var(--bad)}.pad button.sel{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .pad i{position:absolute;top:1px;right:5px;font-size:12px;font-style:normal;font-weight:700;color:var(--bad)}
@@ -60,36 +61,50 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
 .cols button{height:clamp(64px,22vw,96px);min-width:0;padding:0;overflow:hidden;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:clamp(10px,3.2vw,17px)}.cols button:disabled{opacity:.3}
 .empty{text-align:center;opacity:.7;padding:30px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.role{display:flex;flex-direction:column;gap:8px}
+.role button{padding:16px 10px;font:inherit;font-size:clamp(13px,4vw,17px);font-weight:700;text-align:left;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--fg)}
+.role button.on{border-color:var(--acc);background:var(--acc);color:#fff}
+input{font:inherit;width:100%;padding:12px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg)}
+.stp{display:flex;gap:8px;margin:8px 0}
+.stp button{width:56px;font:inherit;font-size:26px;font-weight:700;border-radius:10px;border:0;background:var(--acc);color:#fff}
+.stp input{text-align:center;font-size:24px;font-weight:700}
+.crl{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
 </style></head>
 <body>
 <header>
   <select id="serie" onchange="chSerie(this.value)"></select>
   <span class="m"><button data-m="ms" onclick="chManche('ms')">Mass Start</button> <button data-m="po" onclick="chManche('po')">Poursuite</button></span>
-  <button id="fs" onclick="fs()">⛶</button> <span id="st" onclick="cfg()">⚙</span>
+  <button id="me" onclick="roleScreen()">👤</button> <button id="fs" onclick="fs()">⛶</button> <span id="st" onclick="cfg()">⚙</span>
 </header>
 <main id="main"></main>
-<nav>
-  <button data-t="tir" onclick="chTab('tir')">🎯<br>Tir</button>
-  <button data-t="pen" onclick="chTab('pen')">🏃<br>Pénalités</button>
-  <button data-t="rec" onclick="chTab('rec')">📋<br>Récap</button>
-</nav>
+<nav></nav>
 <div id="sheet" onclick="if(event.target===this)closeSheet()"><div></div></div>
 
 <script>
-// Collez ici l'adresse de votre base Firebase (voir la procédure), ex. : https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app
+// Adresse de la base Firebase (mémorisée ensuite sur chaque appareil). Ex. : https://mon-projet-default-rtdb.europe-west1.firebasedatabase.app
 const DEFAULT_DB = 'https://biathlon-mansigne-default-rtdb.europe-west1.firebasedatabase.app';
 
 const C=[['r','Rouge','#e5534b','#fff'],['v','Vert','#43a047','#fff'],['j','Jaune','#f9d71c','#222'],['b','Bleu','#2b9fd9','#fff']];
+const MN={ms:'Mass Start',po:'Poursuite'};
+const TABS={tir:[['tir','🎯','Tir'],['rec','📋','Récap']],pen:[['pen','🏃','Pénalités'],['rec','📋','Récap']],
+  org:[['tir','🎯','Tir'],['pen','🏃','Pénalités'],['rec','📋','Récap'],['cfg','⚙️','Série']]};
 const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ls={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
           set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-let DB=(ls.get('db',DEFAULT_DB)||'').replace(/\/+$/,'');
-let serie=ls.get('serie','1'), manche=ls.get('manche','ms'), tab='tir', poste=ls.get('poste',0), pf=-1;
-let data=ls.get('data_'+serie,{}), pending=ls.get('pend_'+serie,{}), status=DB?'off':'local', cur=null;
+let DB=(ls.get('db',DEFAULT_DB)||'').replace(/\/+$/,'');if(DB)ls.set('db',DB);
+let serie=ls.get('serie','1'), manche=ls.get('manche','ms'), me=ls.get('me',null), poste=me?me.poste:0, tab='tir';
+let data=ls.get('data_'+serie,{}), pending=ls.get('pend_'+serie,{}), status=DB?'off':'local';
+let cur=null, selT=null, msg='', hist=[], showRole=!me, rs={role:'tir',poste:0,name:''};
 
-const MN={ms:'Mass Start',po:'Poursuite'};
 const key=(m,t,c,f)=>m+'/'+t+'-'+c+'/'+f;
 const val=(m,t,c,f)=>data[key(m,t,c,f)];
+const nb=()=>Math.max(1,Math.min(60,parseInt(data['cfg/nb'])||20));
+const np=()=>Math.ceil(nb()/5);
+const tr=p=>[p*5+1,Math.min(nb(),p*5+5)];
+const lab=p=>{const r=tr(p);return r[0]===r[1]?''+r[0]:r[0]+'–'+r[1]};
+const ctl=p=>data['ctrl/'+p]||'';
 function persist(){ls.set('data_'+serie,data);ls.set('pend_'+serie,pending)}
 
 async function push(k){
@@ -105,13 +120,17 @@ async function pull(){
     const r=await fetch(DB+'/s'+s+'.json');if(!r.ok)throw 0;
     const j=(await r.json())||{};if(s!==serie)return;
     const nd={};
-    for(const m in j)for(const tc in j[m])for(const f in j[m][tc])nd[m+'/'+tc+'/'+f]=j[m][tc][f];
+    for(const m in j){
+      if(m==='cfg'||m==='ctrl'){for(const f in j[m])nd[m+'/'+f]=j[m][f];continue}
+      for(const tc in j[m])for(const f in j[m][tc])nd[m+'/'+tc+'/'+f]=j[m][tc][f];
+    }
     for(const k in pending)nd[k]=data[k];
-    data=nd;
-    status='ok';persist();
+    data=nd;status='ok';persist();
     for(const k in pending)push(k);
   }catch(e){status='off'}
-  head();if(!$('#sheet').classList.contains('open'))render();
+  head();
+  if(showRole){const e=$('#trs');if(e)e.innerHTML=trBtns()}
+  else if(!$('#sheet').classList.contains('open')&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))render();
 }
 
 function head(){
@@ -119,18 +138,43 @@ function head(){
   document.querySelectorAll('[data-m]').forEach(b=>b.classList.toggle('on',b.dataset.m===manche));
 }
 function fs(){try{const d=document.documentElement;(d.requestFullscreen||d.webkitRequestFullscreen).call(d)}catch(e){}}
-if(matchMedia('(display-mode: standalone)').matches)document.getElementById('fs').style.display='none';
+if(matchMedia('(display-mode: standalone)').matches)$('#fs').style.display='none';
 function cfg(){
   const u=prompt('Adresse de la base Firebase (laisser vide = mode local, sans synchronisation) :',DB);
   if(u===null)return;
   DB=u.trim().replace(/\/+$/,'');ls.set('db',DB);status=DB?'off':'local';head();pull();
 }
-function chSerie(v){serie=v;hist=[];msg='';selT=null;ls.set('serie',v);data=ls.get('data_'+v,{});pending=ls.get('pend_'+v,{});render();pull()}
-function chManche(m){manche=m;selT=null;ls.set('manche',m);head();render()}
+function chSerie(v){serie=v;ls.set('serie',v);data=ls.get('data_'+v,{});pending=ls.get('pend_'+v,{});hist=[];msg='';selT=null;render();pull()}
+function chManche(m){manche=m;ls.set('manche',m);selT=null;render()}
 function chTab(t){tab=t;render()}
-function setPoste(p){poste=p;ls.set('poste',p);render()}
-function setPf(p){pf=p;render()}
+function setPoste(p){poste=p;render()}
 
+/* ---------- Choix du rôle ---------- */
+function trBtns(){
+  if(rs.poste>=np())rs.poste=np()-1;
+  let h='';for(let p=0;p<np();p++)h+='<button class="'+(p===rs.poste?'on':'')+'" onclick="rsPoste('+p+')">'+lab(p)+'</button>';
+  return h;
+}
+function keepNm(){const e=$('#nm');if(e)rs.name=e.value}
+function rsRole(r){keepNm();rs.role=r;render()}
+function rsPoste(p){keepNm();rs.poste=p;render()}
+function roleScreen(){showRole=true;rs={role:me?me.role:'tir',poste:me?me.poste:0,name:me?me.name:''};render()}
+function roleView(){
+  const R=[['tir','🎯','Contrôleur de tir'],['pen','🏃','Contrôleur des pénalités'],['org','⚙️','Organisateur']];
+  let h='<h3>'+(serie==='F'?'Finale':'Série '+serie)+' · je suis…</h3><p class="note">Choisissez d’abord la série en haut de l’écran.</p>'+
+    '<div class="role">'+R.map(r=>'<button class="'+(rs.role===r[0]?'on':'')+'" onclick="rsRole(\''+r[0]+'\')">'+r[1]+' '+r[2]+'</button>').join('')+'</div>';
+  if(rs.role==='tir')h+='<h3>Mon poste (tranche de 5 équipes)</h3><div class="seg" id="trs">'+trBtns()+'</div>';
+  if(rs.role!=='org')h+='<h3>Mon nom</h3><input id="nm" value="'+esc(rs.name)+'" placeholder="Nom (facultatif)">';
+  return h+'<button class="btn" onclick="validRole()">Ouvrir</button>';
+}
+function validRole(){
+  keepNm();
+  me={role:rs.role,poste:rs.role==='tir'?Math.min(rs.poste,np()-1):0,name:rs.role==='org'?'':rs.name.trim()};
+  ls.set('me',me);poste=me.poste;showRole=false;tab=TABS[me.role][0][0];
+  if(me.name)set('ctrl/'+(me.role==='tir'?'p'+me.poste:'pen'),me.name);else render();
+}
+
+/* ---------- Tir ---------- */
 function pick(t,c){
   cur={t,c};const v=val(manche,t,c,'m'),col=C.find(x=>x[0]===c);
   let h='<h3>Équipe '+t+' · '+col[1]+' — cibles manquées</h3><div class="num">';
@@ -140,11 +184,15 @@ function pick(t,c){
 }
 function closeSheet(){$('#sheet').classList.remove('open');cur=null}
 function choose(v){const k=key(manche,cur.t,cur.c,'m');closeSheet();set(k,v)}
-
 function tir(){
-  let h='<div class="seg">'+[0,1,2,3].map(p=>'<button class="'+(p===poste?'on':'')+'" onclick="setPoste('+p+')">'+(p*5+1)+'–'+(p*5+5)+'</button>').join('')+'</div>';
+  if(poste>=np())poste=np()-1;
+  const mine=me&&me.role==='tir';
+  let h;
+  if(mine)h='<div class="note"><b>Poste '+(poste+1)+'</b> · équipes '+lab(poste)+(me.name?' · '+esc(me.name):'')+'</div>';
+  else{h='<div class="seg">';for(let p=0;p<np();p++)h+='<button class="'+(p===poste?'on':'')+'" onclick="setPoste('+p+')">'+lab(p)+'</button>';h+='</div>'}
   h+='<div class="hdr"><span></span>'+C.map(c=>'<b style="background:'+c[2]+';color:'+c[3]+'">'+c[1]+'</b>').join('')+'</div>';
-  for(let t=poste*5+1;t<=poste*5+5;t++){
+  const r=tr(poste);
+  for(let t=r[0];t<=r[1];t++){
     h+='<div class="row"><span class="tn">'+t+'</span>'+C.map(c=>{
       const m=val(manche,t,c[0],'m');
       return '<button class="cell '+(m>0?'bad':'')+'" style="border-color:'+c[2]+'" onclick="pick('+t+',\''+c[0]+'\')">'+(m==null?'·':m)+'</button>';
@@ -153,8 +201,7 @@ function tir(){
   return h+'<p class="empty">Touchez une case pour saisir le nombre de cibles manquées (0 à 5).</p>';
 }
 
-let selT=null,msg='',hist=[];
-function selTeam(t){selT=selT===t?null:t;render()}
+/* ---------- Pénalités ---------- */
 function tap(cc){
   if(!selT)return;
   const t=selT,k=key(manche,t,cc,'p'),prev=data[k]||0,x=val(manche,t,cc,'m')||0,col=C.find(z=>z[0]===cc)[1];
@@ -163,12 +210,13 @@ function tap(cc){
   try{navigator.vibrate(40)}catch(e){}
   set(k,prev+1);
 }
+function selTeam(t){selT=selT===t?null:t;render()}
 function undo(){const h=hist.pop();if(!h)return;msg='↩ Dernière saisie annulée';set(h.k,h.prev)}
+function adj(t,c,d){const k=key(manche,t,c,'p');set(k,Math.max(0,(data[k]||0)+d))}
 function pen(){
-  let h='<div class="msg'+(msg.indexOf('⚠')===0?' w':'')+'"><span>'+(msg||'Touchez un numéro d\'équipe, puis la couleur')+'</span>'+
-    '<button onclick="undo()"'+(hist.length?'':' disabled')+'>Annuler</button></div>';
-  h+='<div class="pad">';
-  for(let t=1;t<=20;t++){
+  let h='<div class="msg'+(msg.indexOf('⚠')===0?' w':'')+'"><span>'+(msg||'Touchez un numéro d’équipe, puis la couleur')+'</span>'+
+    '<button onclick="undo()"'+(hist.length?'':' disabled')+'>Annuler</button></div><div class="pad">';
+  for(let t=1;t<=nb();t++){
     let todo=0;C.forEach(c=>{todo+=Math.max(0,(val(manche,t,c[0],'m')||0)-(val(manche,t,c[0],'p')||0))});
     h+='<button class="'+(t===selT?'sel ':'')+(todo?'todo':'')+'" onclick="selTeam('+t+')">'+t+(todo?'<i>'+todo+'</i>':'')+'</button>';
   }
@@ -177,9 +225,9 @@ function pen(){
     return '<button '+(selT?'':'disabled ')+'style="background:'+c[2]+';color:'+c[3]+'" onclick="tap(\''+c[0]+'\')">'+c[1]+(selT?'<br><span style="font-size:clamp(14px,5vw,22px)">'+y+' / '+x+'</span>':'')+'</button>';
   }).join('')+'</div>';
   const L=[];
-  for(let t=1;t<=20;t++)C.forEach(c=>{const m=val(manche,t,c[0],'m')||0,p=val(manche,t,c[0],'p')||0;if(m>0||p>0)L.push({t,c,m,p,r:m-p})});
+  for(let t=1;t<=nb();t++)C.forEach(c=>{const m=val(manche,t,c[0],'m')||0,p=val(manche,t,c[0],'p')||0;if(m>0||p>0)L.push({t,c,m,p,r:m-p})});
   L.sort((a,b)=>((a.r===0)-(b.r===0))||a.t-b.t);
-  h+='<h3 style="margin:14px 0 6px">Suivi ('+MN[manche]+')</h3>';
+  h+='<h3>Suivi ('+MN[manche]+')</h3>';
   if(!L.length)return h+'<p class="empty">Aucun tour de pénalité à effectuer.</p>';
   return h+L.map(x=>{
     const cls=x.r<0?'err':x.r===0?'done':'';
@@ -189,21 +237,21 @@ function pen(){
       '<button class="u" onclick="adj('+x.t+',\''+x.c[0]+'\',-1)">−1</button></div>';
   }).join('');
 }
-function adj(t,c,d){const k=key(manche,t,c,'p');set(k,Math.max(0,(data[k]||0)+d))}
 
+/* ---------- Récap ---------- */
+const plur=(n,w)=>n+' '+w+(n>1?'s':'');
 function ecarts(){
   const L=[];
-  ['ms','po'].forEach(m=>{for(let t=1;t<=20;t++)C.forEach(c=>{
+  ['ms','po'].forEach(m=>{for(let t=1;t<=nb();t++)C.forEach(c=>{
     const x=val(m,t,c[0],'m')||0,y=val(m,t,c[0],'p')||0;
     if(x!==y)L.push({m,t,c,x,y,d:x-y});
   })});
   return L;
 }
-const plur=(n,w)=>n+' '+w+(n>1?'s':'');
 function grid(m){
-  let h='<h3 style="margin:16px 0 6px">'+MN[m]+'</h3><div class="wrap"><table><tr><th>Éq.</th>'+
+  let h='<h3>'+MN[m]+'</h3><div class="wrap"><table><tr><th>Éq.</th>'+
     C.map(c=>'<th style="background:'+c[2]+';color:'+c[3]+'">'+c[1]+'</th>').join('')+'</tr>';
-  for(let t=1;t<=20;t++){
+  for(let t=1;t<=nb();t++){
     h+='<tr><td><b>'+t+'</b></td>'+C.map(c=>{
       const x=val(m,t,c[0],'m')||0,y=val(m,t,c[0],'p')||0;
       const cl=x===0&&y===0?'':x===y?'ok':y<x?'miss':'extra';
@@ -214,23 +262,18 @@ function grid(m){
 }
 function rec(){
   const L=ecarts(),nm=L.filter(e=>e.d>0).length,ne=L.length-nm;
-  let h='<p style="margin:0 0 8px"><b>Série '+(serie==='F'?'Finale':serie)+'</b> · '+
+  let h='<p style="margin:0 0 8px"><b>'+(serie==='F'?'Finale':'Série '+serie)+'</b> · '+nb()+' équipes · '+
     (L.length?'<span class="bad">'+plur(nm,'concurrent')+' avec tour(s) non effectué(s)</span>'+(ne?' · '+plur(ne,'avec tour')+' en trop':''):'<span style="color:var(--ok);font-weight:700">Aucun écart</span>')+'</p>';
-  if(L.length){
-    h+=L.map(e=>'<div class="pr '+(e.d>0?'err':'')+'"><span class="dot" style="background:'+e.c[2]+'"></span><div class="i"><b>Éq. '+e.t+' · '+e.c[1]+' · '+MN[e.m]+'</b>'+
-      '<small>'+plur(e.x,'tir')+' manqué'+(e.x>1?'s':'')+' → '+e.x+' tour'+(e.x>1?'s':'')+' dû'+(e.x>1?'s':'')+', '+e.y+' fait'+(e.y>1?'s':'')+'</small></div>'+
-      '<span class="tag" style="color:'+(e.d>0?'var(--bad)':'#e08a00')+';text-align:right">'+(e.d>0?plur(e.d,'tour')+'<br>non effectué'+(e.d>1?'s':''):plur(-e.d,'tour')+'<br>en trop')+'</span></div>').join('');
-  }
+  h+=L.map(e=>'<div class="pr '+(e.d>0?'err':'')+'"><span class="dot" style="background:'+e.c[2]+'"></span><div class="i"><b>Éq. '+e.t+' · '+e.c[1]+' · '+MN[e.m]+'</b>'+
+    '<small>'+plur(e.x,'tir')+' manqué'+(e.x>1?'s':'')+' → '+e.x+' tour'+(e.x>1?'s':'')+' '+(e.x>1?'dus':'dû')+', '+e.y+' fait'+(e.y>1?'s':'')+'</small></div>'+
+    '<span class="tag" style="color:'+(e.d>0?'var(--bad)':'#e08a00')+';text-align:right">'+(e.d>0?plur(e.d,'tour')+'<br>non effectué'+(e.d>1?'s':''):plur(-e.d,'tour')+'<br>en trop')+'</span></div>').join('');
   h+=grid('ms')+grid('po');
-  h+='<p style="opacity:.75;font-size:14px">Cases : tours faits / tirs manqués. <span class="bad">Rouge</span> = tours non effectués, orange = tours en trop, vert = conforme. À consulter une fois la manche terminée ; en cas de doute, le comité statue.</p>'+
-     '<button class="btn" onclick="csv()">Exporter en CSV</button>'+
-     '<button class="btn" style="background:var(--bad)" onclick="wipe(false)">Remise à zéro de la série</button>'+
-     '<button class="btn" style="background:#6b1f1f" onclick="wipe(true)">Tout remettre à zéro (toutes les séries)</button>';
-  return h;
+  return h+'<p class="note">Cases : tours faits / tirs manqués. <span class="bad">Rouge</span> = tours non effectués, orange = tours en trop, vert = conforme. À consulter une fois la manche terminée ; en cas de doute, le comité statue.</p>'+
+    '<button class="btn" onclick="csv()">Exporter en CSV</button>';
 }
 function csv(){
   let s='Serie;Manche;Equipe;Couleur;Tirs_manques;Tours_dus;Tours_faits;Ecart(non_effectues)\n';
-  ['ms','po'].forEach(m=>{for(let t=1;t<=20;t++)C.forEach(c=>{
+  ['ms','po'].forEach(m=>{for(let t=1;t<=nb();t++)C.forEach(c=>{
     const x=val(m,t,c[0],'m')||0,y=val(m,t,c[0],'p')||0;
     s+=[serie,MN[m],t,c[1],x,x,y,x-y].join(';')+'\n';
   })});
@@ -238,26 +281,49 @@ function csv(){
   a.download='biathlon_serie_'+serie+'.csv';document.body.appendChild(a);a.click();a.remove();
 }
 
+/* ---------- Série (organisateur) ---------- */
+function setNb(v){set('cfg/nb',Math.max(1,Math.min(60,parseInt(v)||20)))}
+function cfgView(){
+  let h='<h3>'+(serie==='F'?'Finale':'Série '+serie)+'</h3><div class="card"><b>Nombre d’équipes</b>'+
+    '<div class="stp"><button onclick="setNb(nb()-1)">−</button><input type="number" min="1" max="60" value="'+nb()+'" onchange="setNb(this.value)"><button onclick="setNb(nb()+1)">+</button></div>'+
+    '<p class="note">'+plur(np(),'contrôleur')+' de tir (tranches de 5 équipes). Tous les téléphones se mettent à jour automatiquement.</p></div>'+
+    '<div class="card"><b>Contrôleurs</b>';
+  for(let p=0;p<np();p++)h+='<div class="crl"><span>Poste '+(p+1)+' · éq. '+lab(p)+'</span><span>'+(esc(ctl('p'+p))||'—')+'</span></div>';
+  h+='<div class="crl"><span>Pénalités</span><span>'+(esc(ctl('pen'))||'—')+'</span></div></div>'+
+    '<button class="btn" style="background:var(--bad)" onclick="wipe(false)">Remise à zéro de la série</button>'+
+    '<button class="btn" style="background:#6b1f1f" onclick="wipe(true)">Tout remettre à zéro (toutes les séries)</button>'+
+    '<p class="note">La remise à zéro efface les tirs et les tours, pas le nombre d’équipes ni les noms.</p>';
+  return h;
+}
 async function wipe(all){
-  const lab=serie==='F'?'Finale':'série '+serie;
-  if(!confirm(all?'Remettre à zéro TOUTES les séries (et la finale) ? Les tirs et tours enregistrés seront supprimés sur tous les appareils.':'Remettre à zéro la '+lab+' ? Les tirs et tours enregistrés seront supprimés sur tous les appareils.'))return;
+  const ser=all?['1','2','3','4','5','6','7','F']:[serie];
+  if(!confirm(all?'Remettre à zéro TOUTES les séries (et la finale) ? Les tirs et tours seront supprimés sur tous les appareils.':'Remettre à zéro '+(serie==='F'?'la finale':'la série '+serie)+' ? Les tirs et tours seront supprimés sur tous les appareils.'))return;
   if(((prompt('Pour confirmer, tapez ZERO')||'').trim().toUpperCase())!=='ZERO')return;
   if(DB){
-    try{const r=await fetch(DB+(all?'/.json':'/s'+serie+'.json'),{method:'DELETE'});if(!r.ok)throw 0}
-    catch(e){alert('Réseau indisponible : rien n\'a été effacé. Réessayez avec du réseau.');return}
+    try{const rs2=await Promise.all(ser.flatMap(s=>['ms','po'].map(m=>fetch(DB+'/s'+s+'/'+m+'.json',{method:'DELETE'}))));
+        if(rs2.some(r=>!r.ok))throw 0}
+    catch(e){alert('Réseau indisponible : rien n’a été effacé. Réessayez avec du réseau.');return}
   }
-  try{Object.keys(localStorage).forEach(x=>{if(x.indexOf('pend_')===0||x.indexOf('data_')===0){if(all||x.slice(5)===serie)localStorage.removeItem(x)}})}catch(e){}
-  data={};pending={};hist=[];msg='';selT=null;persist();render();
+  const clean=o=>{const n={};for(const k in o)if(k.indexOf('ms/')!==0&&k.indexOf('po/')!==0)n[k]=o[k];return n};
+  ser.forEach(s=>{ls.set('data_'+s,clean(s===serie?data:ls.get('data_'+s,{})));ls.set('pend_'+s,clean(s===serie?pending:ls.get('pend_'+s,{})))});
+  data=ls.get('data_'+serie,{});pending=ls.get('pend_'+serie,{});hist=[];msg='';selT=null;render();
   alert('Remise à zéro effectuée.');
 }
+
+/* ---------- Affichage ---------- */
 function render(){
-  $('#main').innerHTML=tab==='tir'?tir():tab==='pen'?pen():rec();
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  const tabs=showRole?[]:TABS[me.role];
+  if(!showRole&&!tabs.some(x=>x[0]===tab))tab=tabs[0][0];
+  $('#main').innerHTML=showRole?roleView():tab==='tir'?tir():tab==='pen'?pen():tab==='rec'?rec():cfgView();
+  $('nav').innerHTML=tabs.map(x=>'<button class="'+(x[0]===tab?'on':'')+'" onclick="chTab(\''+x[0]+'\')">'+x[1]+'<br>'+x[2]+'</button>').join('');
+  $('nav').style.display=showRole?'none':'flex';
+  document.querySelector('.m').style.display=showRole?'none':'flex';
+  head();
 }
 
 $('#serie').innerHTML=['1','2','3','4','5','6','7'].map(s=>'<option value="'+s+'">Série '+s+'</option>').join('')+'<option value="F">Finale</option>';
 $('#serie').value=serie;
-head();render();pull();setInterval(pull,4000);
+render();pull();setInterval(pull,4000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body></html>

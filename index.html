@@ -29,8 +29,8 @@ h3{margin:12px 0 6px}
 .tn{display:flex;align-items:center;justify-content:center;font-size:clamp(14px,5vw,20px);font-weight:700}
 .cell{height:clamp(44px,14vw,76px);min-width:0;padding:0;font-size:clamp(20px,8vw,32px);font-weight:700;border-radius:12px;border:4px solid;background:var(--card);color:var(--fg)}
 .cell.bad{background:var(--bad);color:#fff}
-.pr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
-.pr .dot{width:22px;height:22px;border-radius:50%;flex:none}
+.pr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.pr .dot{width:18px;height:18px;border-radius:50%;flex:none}
 .pr .i{flex:1}.pr .i small{display:block;opacity:.75}
 .pr button{font:inherit;font-weight:700;border-radius:10px;border:0;padding:14px 12px;background:var(--acc);color:#fff;min-width:84px}
 .pr button.u{background:var(--line);color:var(--fg);min-width:48px}
@@ -61,6 +61,10 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 .pad button.sel i{color:var(--bg)}
 .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
 .cols button{height:clamp(64px,22vw,96px);min-width:0;padding:0;overflow:hidden;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:clamp(10px,3.2vw,17px)}.cols button:disabled{opacity:.3}
+.pr>.tag{font-size:clamp(12px,3.6vw,15px);text-align:right}
+.gt{table-layout:fixed}.gt th,.gt td{padding:5px 0;font-size:clamp(11px,3.4vw,14px)}
+.gt th:first-child,.gt td:first-child{width:11%}.gt .sep{border-left:2px solid var(--line)}
+.err{color:var(--bad);font-weight:700;margin:6px 0 0}input.inerr{border-color:var(--bad)}
 .empty{text-align:center;opacity:.7;padding:30px 0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
 .role{display:flex;flex-direction:column;gap:8px}
@@ -97,7 +101,7 @@ const ls={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.pa
 let DB=(ls.get('db',DEFAULT_DB)||'').replace(/\/+$/,'');if(DB)ls.set('db',DB);
 let serie=ls.get('serie','1'), manche=ls.get('manche','ms'), me=ls.get('me',null), poste=me?me.poste:0, tab='tir';
 let data=ls.get('data_'+serie,{}), pending=ls.get('pend_'+serie,{}), status=DB?'off':'local';
-let cur=null, selT=null, msg='', hist=[], showRole=!me, rs={role:'tir',poste:0,name:''};
+let cur=null, selT=null, msg='', hist=[], showRole=true, rs={role:me?me.role:'tir',poste:me?me.poste:0,name:me?me.name:'',err:''};
 
 const key=(m,t,c,f)=>m+'/'+t+'-'+c+'/'+f;
 const val=(m,t,c,f)=>data[key(m,t,c,f)];
@@ -145,34 +149,53 @@ function cfg(){
   if(u===null)return;
   DB=u.trim().replace(/\/+$/,'');ls.set('db',DB);status=DB?'off':'local';head();pull();
 }
-function chSerie(v){serie=v;ls.set('serie',v);data=ls.get('data_'+v,{});pending=ls.get('pend_'+v,{});hist=[];msg='';selT=null;render();pull()}
+function chSerie(v){keepNm();serie=v;$('#serie').value=v;ls.set('serie',v);data=ls.get('data_'+v,{});pending=ls.get('pend_'+v,{});hist=[];msg='';selT=null;render();pull()}
 function chManche(m){manche=m;ls.set('manche',m);selT=null;render()}
 function chTab(t){tab=t;render()}
 function setPoste(p){poste=p;render()}
 
 /* ---------- Choix du rôle ---------- */
+const norm=s=>String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+const ctlLabel=k=>k==='pen'?'le contrôleur des pénalités':'le poste '+(parseInt(k.slice(1))+1);
 function trBtns(){
   if(rs.poste>=np())rs.poste=np()-1;
   let h='';for(let p=0;p<np();p++)h+='<button class="'+(p===rs.poste?'on':'')+'" onclick="rsPoste('+p+')">'+lab(p)+'</button>';
   return h;
 }
 function keepNm(){const e=$('#nm');if(e)rs.name=e.value}
-function rsRole(r){keepNm();rs.role=r;render()}
-function rsPoste(p){keepNm();rs.poste=p;render()}
-function roleScreen(){showRole=true;rs={role:me?me.role:'tir',poste:me?me.poste:0,name:me?me.name:''};render()}
+function rsRole(r){keepNm();rs.role=r;rs.err='';render()}
+function rsPoste(p){keepNm();rs.poste=p;rs.err='';render()}
+function roleScreen(){showRole=true;rs={role:me?me.role:'tir',poste:me?me.poste:0,name:me?me.name:'',err:''};render()}
 function roleView(){
   const R=[['tir','🎯','Contrôleur de tir'],['pen','🏃','Contrôleur des pénalités'],['org','⚙️','Organisateur']];
-  let h='<h3>'+(serie==='F'?'Finale':'Série '+serie)+' · je suis…</h3><p class="note">Choisissez d’abord la série en haut de l’écran.</p>'+
-    '<div class="role">'+R.map(r=>'<button class="'+(rs.role===r[0]?'on':'')+'" onclick="rsRole(\''+r[0]+'\')">'+r[1]+' '+r[2]+'</button>').join('')+'</div>';
+  const S=['1','2','3','4','5','6','7','F'];
+  let h='<h3>Série</h3><div class="seg">'+S.map(x=>'<button class="'+(x===serie?'on':'')+'" onclick="chSerie(\''+x+'\')">'+(x==='F'?'Finale':x)+'</button>').join('')+'</div>'+
+    '<h3>Je suis…</h3><div class="role">'+R.map(r=>'<button class="'+(rs.role===r[0]?'on':'')+'" onclick="rsRole(\''+r[0]+'\')">'+r[1]+' '+r[2]+'</button>').join('')+'</div>';
   if(rs.role==='tir')h+='<h3>Mon poste (tranche de 5 équipes)</h3><div class="seg" id="trs">'+trBtns()+'</div>';
-  if(rs.role!=='org')h+='<h3>Mon nom</h3><input id="nm" value="'+esc(rs.name)+'" placeholder="Nom (facultatif)">';
+  h+='<h3>Mon nom <small style="font-weight:400">(obligatoire)</small></h3><input id="nm" class="'+(rs.err?'inerr':'')+'" value="'+esc(rs.name)+'" placeholder="Votre nom" autocomplete="off">';
+  if(rs.err)h+='<p class="err">'+esc(rs.err)+'</p>';
   return h+'<button class="btn" onclick="validRole()">Ouvrir</button>';
 }
 function validRole(){
   keepNm();
-  me={role:rs.role,poste:rs.role==='tir'?Math.min(rs.poste,np()-1):0,name:rs.role==='org'?'':rs.name.trim()};
+  const nm=rs.name.trim();
+  if(!nm){rs.err='Merci de saisir votre nom pour continuer.';render();return}
+  const kk=rs.role==='tir'?'p'+Math.min(rs.poste,np()-1):rs.role==='pen'?'pen':'org';
+  const old=me&&me.role==='tir'?'p'+me.poste:me&&me.role==='pen'?'pen':null;
+  const mine=k=>k!==null&&k===old&&norm(ctl(k))===norm(me.name);
+  let warn='';
+  for(const k in data){
+    if(k.indexOf('ctrl/')!==0)continue;const id=k.slice(5);
+    if(id===kk||mine(id))continue;
+    if(norm(data[k])===norm(nm)){warn='Le nom « '+nm+' » est déjà utilisé pour '+ctlLabel(id)+'.';break}
+  }
+  const cur=kk==='org'?'':ctl(kk);
+  if(!warn&&cur&&norm(cur)!==norm(nm))warn='Ce poste est déjà attribué à « '+cur+' ».';
+  if(warn&&!confirm(warn+'\n\nContinuer quand même ?'))return;
+  if(old&&old!==kk&&mine(old))set('ctrl/'+old,null);
+  me={role:rs.role,poste:rs.role==='tir'?Math.min(rs.poste,np()-1):0,name:nm};
   ls.set('me',me);poste=me.poste;showRole=false;tab=TABS[me.role][0][0];
-  if(me.name)set('ctrl/'+(me.role==='tir'?'p'+me.poste:'pen'),me.name);else render();
+  if(kk!=='org')set('ctrl/'+kk,nm);else render();
 }
 
 /* ---------- Tir ---------- */
@@ -249,15 +272,15 @@ function ecarts(){
   })});
   return L;
 }
-function grid(m){
-  let h='<h3>'+MN[m]+'</h3><div class="wrap"><table><tr><th>Éq.</th>'+
-    C.map(c=>'<th style="background:'+c[2]+';color:'+c[3]+'">'+c[1]+'</th>').join('')+'</tr>';
+function grid(){
+  const hd=sep=>C.map((c,i)=>'<th'+(sep&&i===0?' class="sep"':'')+' style="background:'+c[2]+';color:'+c[3]+'">'+c[1][0]+'</th>').join('');
+  let h='<div class="wrap"><table class="gt"><tr><th rowspan="2">Éq.</th><th colspan="4">Mass Start</th><th colspan="4" class="sep">Poursuite</th></tr><tr>'+hd(false)+hd(true)+'</tr>';
   for(let t=1;t<=nb();t++){
-    h+='<tr><td><b>'+t+'</b></td>'+C.map(c=>{
+    h+='<tr><td><b>'+t+'</b></td>'+['ms','po'].map((m,mi)=>C.map((c,i)=>{
       const x=val(m,t,c[0],'m')||0,y=val(m,t,c[0],'p')||0;
-      const cl=x===0&&y===0?'':x===y?'ok':y<x?'miss':'extra';
-      return '<td class="'+cl+'">'+(x===0&&y===0?'·':y+' / '+x)+'</td>';
-    }).join('')+'</tr>';
+      const cl=(x===0&&y===0?'':x===y?'ok':y<x?'miss':'extra')+(mi&&i===0?' sep':'');
+      return '<td class="'+cl+'">'+(x===0&&y===0?'·':y+'/'+x)+'</td>';
+    }).join('')).join('')+'</tr>';
   }
   return h+'</table></div>';
 }
@@ -265,11 +288,11 @@ function rec(){
   const L=ecarts(),nm=L.filter(e=>e.d>0).length,ne=L.length-nm;
   let h='<p style="margin:0 0 8px"><b>'+(serie==='F'?'Finale':'Série '+serie)+'</b> · '+nb()+' équipes · '+
     (L.length?'<span class="bad">'+plur(nm,'concurrent')+' avec tour(s) non effectué(s)</span>'+(ne?' · '+plur(ne,'avec tour')+' en trop':''):'<span style="color:var(--ok);font-weight:700">Aucun écart</span>')+'</p>';
-  h+=L.map(e=>'<div class="pr '+(e.d>0?'err':'')+'"><span class="dot" style="background:'+e.c[2]+'"></span><div class="i"><b>Éq. '+e.t+' · '+e.c[1]+' · '+MN[e.m]+'</b>'+
-    '<small>'+plur(e.x,'tir')+' manqué'+(e.x>1?'s':'')+' → '+e.x+' tour'+(e.x>1?'s':'')+' '+(e.x>1?'dus':'dû')+', '+e.y+' fait'+(e.y>1?'s':'')+'</small></div>'+
-    '<span class="tag" style="color:'+(e.d>0?'var(--bad)':'#e08a00')+';text-align:right">'+(e.d>0?plur(e.d,'tour')+'<br>non effectué'+(e.d>1?'s':''):plur(-e.d,'tour')+'<br>en trop')+'</span></div>').join('');
-  h+=grid('ms')+grid('po');
-  return h+'<p class="note">Cases : tours faits / tirs manqués. <span class="bad">Rouge</span> = tours non effectués, orange = tours en trop, vert = conforme. À consulter une fois la manche terminée ; en cas de doute, le comité statue.</p>'+
+  h+=L.map(e=>'<div class="pr '+(e.d>0?'err':'')+'"><span class="dot" style="background:'+e.c[2]+'"></span><div class="i"><b>Éq. '+e.t+' · '+e.c[1]+'</b>'+
+    '<small>'+MN[e.m]+' · '+e.x+' manqué'+(e.x>1?'s':'')+', '+e.y+' fait'+(e.y>1?'s':'')+'</small></div>'+
+    '<span class="tag" style="color:'+(e.d>0?'var(--bad)':'#e08a00')+'">'+(e.d>0?plur(e.d,'tour')+'<br>non effectué'+(e.d>1?'s':''):plur(-e.d,'tour')+'<br>en trop')+'</span></div>').join('');
+  h+='<h3>Tours faits / tirs manqués</h3>'+grid();
+  return h+'<p class="note"><span class="bad">Rouge</span> = tours non effectués, orange = tours en trop, vert = conforme. R V J B = Rouge, Vert, Jaune, Bleu. À consulter une fois la manche terminée ; en cas de doute, le comité statue.</p>'+
     '<button class="btn" onclick="csv()">Exporter en CSV</button>';
 }
 function csv(){
@@ -318,7 +341,8 @@ function render(){
   $('#main').innerHTML=showRole?roleView():tab==='tir'?tir():tab==='pen'?pen():tab==='rec'?rec():cfgView();
   $('nav').innerHTML=tabs.map(x=>'<button class="'+(x[0]===tab?'on':'')+'" onclick="chTab(\''+x[0]+'\')">'+x[1]+'<br>'+x[2]+'</button>').join('');
   $('nav').style.display=showRole?'none':'flex';
-  document.querySelector('.m').style.display=showRole?'none':'flex';
+  document.querySelector('.m').style.display=(showRole||tab==='rec'||tab==='cfg')?'none':'flex';
+  $('#serie').style.display=showRole?'none':'';$('#me').style.display=showRole?'none':'';
   head();
 }
 

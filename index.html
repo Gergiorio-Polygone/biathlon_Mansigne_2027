@@ -64,6 +64,7 @@ nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
 .pr>.tag{font-size:clamp(12px,3.6vw,15px);text-align:right}
 .gt{table-layout:fixed}.gt th,.gt td{padding:5px 0;font-size:clamp(11px,3.4vw,14px)}
 .gt th:first-child,.gt td:first-child{width:11%}.gt .sep{border-left:2px solid var(--line)}
+.crl2{display:flex;align-items:center;gap:8px;margin:6px 0}.crl2 span{flex:0 0 38%;font-size:clamp(12px,3.6vw,15px)}.crl2 input{padding:8px 10px;min-width:0}
 .err{color:var(--bad);font-weight:700;margin:6px 0 0}input.inerr{border-color:var(--bad)}
 .empty{text-align:center;opacity:.7;padding:30px 0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
@@ -134,7 +135,7 @@ async function pull(){
     for(const k in pending)push(k);
   }catch(e){status='off'}
   head();
-  if(showRole){const e=$('#trs');if(e)e.innerHTML=trBtns()}
+  if(showRole){}
   else if(!$('#sheet').classList.contains('open')&&!(document.activeElement&&document.activeElement.tagName==='INPUT'))render();
 }
 
@@ -156,46 +157,40 @@ function setPoste(p){poste=p;render()}
 
 /* ---------- Choix du rôle ---------- */
 const norm=s=>String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
-const ctlLabel=k=>k==='pen'?'le contrôleur des pénalités':'le poste '+(parseInt(k.slice(1))+1);
-function trBtns(){
-  if(rs.poste>=np())rs.poste=np()-1;
-  let h='';for(let p=0;p<np();p++)h+='<button class="'+(p===rs.poste?'on':'')+'" onclick="rsPoste('+p+')">'+lab(p)+'</button>';
-  return h;
-}
 function keepNm(){const e=$('#nm');if(e)rs.name=e.value}
 function rsRole(r){keepNm();rs.role=r;rs.err='';render()}
-function rsPoste(p){keepNm();rs.poste=p;rs.err='';render()}
-function roleScreen(){showRole=true;rs={role:me?me.role:'tir',poste:me?me.poste:0,name:me?me.name:'',err:''};render()}
+function roleScreen(){showRole=true;rs={role:me?me.role:'tir',poste:0,name:me?me.name:'',err:''};render()}
+function anyAssigned(){for(let p=0;p<np();p++)if(ctl('p'+p))return true;return !!ctl('pen')}
 function roleView(){
   const R=[['tir','🎯','Contrôleur de tir'],['pen','🏃','Contrôleur des pénalités'],['org','⚙️','Organisateur']];
   const S=['1','2','3','4','5','6','7','F'];
   let h='<h3>Série</h3><div class="seg">'+S.map(x=>'<button class="'+(x===serie?'on':'')+'" onclick="chSerie(\''+x+'\')">'+(x==='F'?'Finale':x)+'</button>').join('')+'</div>'+
-    '<h3>Je suis…</h3><div class="role">'+R.map(r=>'<button class="'+(rs.role===r[0]?'on':'')+'" onclick="rsRole(\''+r[0]+'\')">'+r[1]+' '+r[2]+'</button>').join('')+'</div>';
-  if(rs.role==='tir')h+='<h3>Mon poste (tranche de 5 équipes)</h3><div class="seg" id="trs">'+trBtns()+'</div>';
-  h+='<h3>Mon nom <small style="font-weight:400">(obligatoire)</small></h3><input id="nm" class="'+(rs.err?'inerr':'')+'" value="'+esc(rs.name)+'" placeholder="Votre nom" autocomplete="off">';
-  if(rs.err)h+='<p class="err">'+esc(rs.err)+'</p>';
+    '<h3>Je suis…</h3><div class="role">'+R.map(r=>'<button class="'+(rs.role===r[0]?'on':'')+'" onclick="rsRole(\''+r[0]+'\')">'+r[1]+' '+r[2]+'</button>').join('')+'</div>'+
+    '<h3>Mon nom <small style="font-weight:400">(obligatoire)</small></h3><input id="nm" class="'+(rs.err?'inerr':'')+'" value="'+esc(rs.name)+'" placeholder="Votre nom" autocomplete="off">';
+  if(rs.role!=='org')h+='<p class="note">Saisissez votre nom tel qu’il a été enregistré par l’organisateur pour cette série. Votre poste s’ouvre automatiquement.</p>';
+  if(rs.err)h+='<p class="err">⚠ '+esc(rs.err)+'</p>';
   return h+'<button class="btn" onclick="validRole()">Ouvrir</button>';
 }
+function roleErr(m){rs.err=m;render()}
 function validRole(){
   keepNm();
-  const nm=rs.name.trim();
-  if(!nm){rs.err='Merci de saisir votre nom pour continuer.';render();return}
-  const kk=rs.role==='tir'?'p'+Math.min(rs.poste,np()-1):rs.role==='pen'?'pen':'org';
-  const old=me&&me.role==='tir'?'p'+me.poste:me&&me.role==='pen'?'pen':null;
-  const mine=k=>k!==null&&k===old&&norm(ctl(k))===norm(me.name);
-  let warn='';
-  for(const k in data){
-    if(k.indexOf('ctrl/')!==0)continue;const id=k.slice(5);
-    if(id===kk||mine(id))continue;
-    if(norm(data[k])===norm(nm)){warn='Le nom « '+nm+' » est déjà utilisé pour '+ctlLabel(id)+'.';break}
+  const nm=rs.name.trim(),n=norm(nm);
+  if(!nm)return roleErr('Merci de saisir votre nom pour continuer.');
+  let p=0,official=nm;
+  if(rs.role!=='org'){
+    if(!anyAssigned())return roleErr(DB&&status!=='ok'?'Synchronisation en cours… patientez quelques secondes puis réessayez.':'Aucun contrôleur n’est attribué pour cette série. Voyez l’organisateur.');
+    const tp=[];for(let q=0;q<np();q++)if(norm(ctl('p'+q))===n)tp.push(q);
+    const isPen=norm(ctl('pen'))===n;
+    if(rs.role==='tir'){
+      if(!tp.length)return roleErr(isPen?'Ce nom est attribué au contrôleur des pénalités : choisissez « Contrôleur des pénalités ».':'Nom non reconnu pour cette série. Vérifiez l’orthographe ou voyez l’organisateur.');
+      p=tp[0];official=ctl('p'+p);
+    }else{
+      if(!isPen)return roleErr(tp.length?'Ce nom est attribué au poste '+(tp[0]+1)+' (tir) : choisissez « Contrôleur de tir ».':'Nom non reconnu pour cette série. Vérifiez l’orthographe ou voyez l’organisateur.');
+      official=ctl('pen');
+    }
   }
-  const cur=kk==='org'?'':ctl(kk);
-  if(!warn&&cur&&norm(cur)!==norm(nm))warn='Ce poste est déjà attribué à « '+cur+' ».';
-  if(warn&&!confirm(warn+'\n\nContinuer quand même ?'))return;
-  if(old&&old!==kk&&mine(old))set('ctrl/'+old,null);
-  me={role:rs.role,poste:rs.role==='tir'?Math.min(rs.poste,np()-1):0,name:nm};
-  ls.set('me',me);poste=me.poste;showRole=false;tab=TABS[me.role][0][0];
-  if(kk!=='org')set('ctrl/'+kk,nm);else render();
+  me={role:rs.role,poste:p,name:official};
+  ls.set('me',me);poste=p;showRole=false;tab=TABS[me.role][0][0];render();
 }
 
 /* ---------- Tir ---------- */
@@ -311,13 +306,27 @@ function cfgView(){
   let h='<h3>'+(serie==='F'?'Finale':'Série '+serie)+'</h3><div class="card"><b>Nombre d’équipes</b>'+
     '<div class="stp"><button onclick="setNb(nb()-1)">−</button><input type="number" min="1" max="60" value="'+nb()+'" onchange="setNb(this.value)"><button onclick="setNb(nb()+1)">+</button></div>'+
     '<p class="note">'+plur(np(),'contrôleur')+' de tir (tranches de 5 équipes). Tous les téléphones se mettent à jour automatiquement.</p></div>'+
-    '<div class="card"><b>Contrôleurs</b>';
-  for(let p=0;p<np();p++)h+='<div class="crl"><span>Poste '+(p+1)+' · éq. '+lab(p)+'</span><span>'+(esc(ctl('p'+p))||'—')+'</span></div>';
-  h+='<div class="crl"><span>Pénalités</span><span>'+(esc(ctl('pen'))||'—')+'</span></div></div>'+
+    '<div class="card"><b>Contrôleurs de la série</b><p class="note">Saisissez le nom de chaque contrôleur. Il devra le saisir à l’identique sur son téléphone pour ouvrir son tableau.</p>';
+  for(let p=0;p<np();p++)h+='<div class="crl2"><span>Poste '+(p+1)+' · éq. '+lab(p)+'</span><input value="'+esc(ctl('p'+p))+'" placeholder="Nom" autocomplete="off" onchange="setCtl(\'p'+p+'\',this.value)"></div>';
+  h+='<div class="crl2"><span>Pénalités</span><input value="'+esc(ctl('pen'))+'" placeholder="Nom" autocomplete="off" onchange="setCtl(\'pen\',this.value)"></div><div id="dup"></div></div>'+
     '<button class="btn" style="background:var(--bad)" onclick="wipe(false)">Remise à zéro de la série</button>'+
     '<button class="btn" style="background:#6b1f1f" onclick="wipe(true)">Tout remettre à zéro (toutes les séries)</button>'+
     '<p class="note">La remise à zéro efface les tirs et les tours, pas le nombre d’équipes ni les noms.</p>';
   return h;
+}
+function setCtl(k,v){
+  v=v.trim();const kk='ctrl/'+k;
+  data[kk]=v||null;pending[kk]=1;persist();push(kk);dupInfo();
+}
+function dupInfo(){
+  const el=$('#dup');if(!el)return;
+  const ids=[];for(let p=0;p<np();p++)ids.push('p'+p);ids.push('pen');
+  const seen={};let empty=0;
+  ids.forEach(id=>{const n=norm(ctl(id));if(!n){empty++;return}(seen[n]=seen[n]||[]).push(id)});
+  const nom=id=>id==='pen'?'pénalités':'poste '+(parseInt(id.slice(1))+1);
+  const dups=Object.keys(seen).filter(n=>seen[n].length>1).map(n=>esc(ctl(seen[n][0]))+' ('+seen[n].map(nom).join(' et ')+')');
+  el.innerHTML=(dups.length?'<p class="err">⚠ Même nom attribué deux fois : '+dups.join(' ; ')+'</p>':'')+
+    (empty?'<p class="note">'+empty+' attribution'+(empty>1?'s':'')+' manquante'+(empty>1?'s':'')+'.</p>':'<p class="note">Tous les postes sont attribués.</p>');
 }
 async function wipe(all){
   const ser=all?['1','2','3','4','5','6','7','F']:[serie];
@@ -339,6 +348,7 @@ function render(){
   const tabs=showRole?[]:TABS[me.role];
   if(!showRole&&!tabs.some(x=>x[0]===tab))tab=tabs[0][0];
   $('#main').innerHTML=showRole?roleView():tab==='tir'?tir():tab==='pen'?pen():tab==='rec'?rec():cfgView();
+  if(!showRole&&tab==='cfg')dupInfo();
   $('nav').innerHTML=tabs.map(x=>'<button class="'+(x[0]===tab?'on':'')+'" onclick="chTab(\''+x[0]+'\')">'+x[1]+'<br>'+x[2]+'</button>').join('');
   $('nav').style.display=showRole?'none':'flex';
   document.querySelector('.m').style.display=(showRole||tab==='rec'||tab==='cfg')?'none':'flex';
